@@ -436,6 +436,7 @@ _FULL_CONFIG = (
     ("slice_backward", slice_backward),
     ("slice_scatter", slice_scatter),
     ("soft_margin_loss", soft_margin_loss),
+    ("smooth_l1_loss", smooth_l1_loss),
     ("softplus", softplus),
     ("softshrink", softshrink),
     ("softshrink.out", softshrink_out),
