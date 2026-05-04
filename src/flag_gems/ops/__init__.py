@@ -80,7 +80,9 @@ from flag_gems.ops.contiguous import contiguous
 from flag_gems.ops.conv1d import conv1d
 from flag_gems.ops.conv2d import conv2d
 from flag_gems.ops.conv3d import conv3d
+from flag_gems.ops.ctc_loss import ctc_loss
 from flag_gems.ops.conv_depthwise2d import _conv_depthwise2d
+from flag_gems.ops.conv_transpose2d import conv_transpose2d
 from flag_gems.ops.copy import copy, copy_
 from flag_gems.ops.copysign import copysign, copysign_out
 from flag_gems.ops.cos import cos, cos_
@@ -302,6 +304,7 @@ from flag_gems.ops.softmax import (
 from flag_gems.ops.softplus import softplus
 from flag_gems.ops.softshrink import softshrink, softshrink_out
 from flag_gems.ops.sort import sort, sort_stable
+from flag_gems.ops.svd import svd, svd_out
 from flag_gems.ops.special_i0e import special_i0e, special_i0e_out
 from flag_gems.ops.special_i1 import special_i1, special_i1_out
 from flag_gems.ops.sqrt import sqrt, sqrt_
@@ -452,6 +455,8 @@ __all__ = [
     "conv1d",
     "conv2d",
     "conv3d",
+    "conv_transpose2d",
+    "ctc_loss",
     "copy",
     "copy_",
     "copysign",
@@ -733,6 +738,8 @@ __all__ = [
     "softshrink_out",
     "sort",
     "sort_stable",
+    "svd",
+    "svd_out",
     "special_i1",
     "special_i1_out",
     "special_i0e",
