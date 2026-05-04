@@ -1169,6 +1169,44 @@ vstack:
       - 1024
       - 2048
       - 4096
+tril:
+  - gen: true
+    param_map:
+      META:
+        M_BLOCK_SIZE: block_m
+        N_BLOCK_SIZE: block_n
+      num_warps: warps
+    block_m:
+      - 32
+      - 64
+      - 128
+    block_n:
+      - 32
+      - 64
+      - 128
+    warps:
+      - 2
+      - 4
+      - 8
+tril_batch:
+  - gen: true
+    param_map:
+      META:
+        M_BLOCK_SIZE: block_m
+        N_BLOCK_SIZE: block_n
+      num_warps: warps
+    block_m:
+      - 32
+      - 64
+      - 128
+    block_n:
+      - 32
+      - 64
+      - 128
+    warps:
+      - 2
+      - 4
+      - 8
 triu:
   - gen: true
     param_map:
