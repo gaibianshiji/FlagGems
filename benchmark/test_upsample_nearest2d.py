@@ -6,8 +6,6 @@ from . import base, consts
 
 class UpsampleBenchmark(base.GenericBenchmark):
     def set_more_shapes(self):
-        # self.shapes is a list of tuples, each containing three elements:
-        # (N, C, H, W).
         return []
 
 
