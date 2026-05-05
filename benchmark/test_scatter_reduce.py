@@ -12,13 +12,11 @@ class TensorSelectBenchmark(base.GenericBenchmark2DOnly):
         return ["gbps"]
 
     def set_more_shapes(self):
-        # Speed Up Benchmark Test, Big Shape Will Cause Timeout
         if flag_gems.vendor_name == "kunlunxin":
             return []
 
         shapes = super().set_more_shapes()
         shapes = [
-            # this filter is for scatter
             shape
             for shape in shapes
             if len(shape) == 2 and shape[0] > 16 and shape[1] > 16
@@ -47,7 +45,19 @@ def scatter_input_fn_factory(reduce=None):
         if reduce is None:
             yield inp, dim, index, src
         else:
-            yield inp, dim, index, src, reduce
+            yield inp, dim, index, src, {"reduce": reduce}
+
+    return inner
+
+
+def scatter_reduce_input_fn_factory(reduce="sum"):
+    def inner(shape, dtype, device):
+        inp = torch.randn(shape, dtype=dtype, device=device)
+        dim = -1
+        size_dim = shape[dim]
+        index = torch.randint(0, size_dim, shape, dtype=torch.long, device=device)
+        src = torch.randn(shape, dtype=dtype, device=device)
+        yield inp, dim, index, src, {"reduce": reduce}
 
     return inner
 
@@ -63,7 +73,7 @@ def scatter_inplace_input_fn_factory(reduce=None):
         if reduce is None:
             yield inp, dim, index, src
         else:
-            yield inp, dim, index, src, reduce
+            yield inp, dim, index, src, {"reduce": reduce}
 
     return inner
 
@@ -123,5 +133,29 @@ def test_scatter_reduce_multiply_inplace():
         get_gbps=gather_scatter_gbps,
         dtypes=[torch.float16, torch.float32],
         is_inplace=True,
+    )
+    bench.run()
+
+
+@pytest.mark.scatter_reduce_two
+def test_scatter_reduce_two_sum():
+    bench = TensorSelectBenchmark(
+        op_name="scatter_reduce.two",
+        torch_op=torch.scatter_reduce,
+        input_fn=scatter_reduce_input_fn_factory("sum"),
+        get_gbps=gather_scatter_gbps,
+        dtypes=[torch.float16, torch.float32],
+    )
+    bench.run()
+
+
+@pytest.mark.scatter_reduce_two
+def test_scatter_reduce_two_amax():
+    bench = TensorSelectBenchmark(
+        op_name="scatter_reduce.two",
+        torch_op=torch.scatter_reduce,
+        input_fn=scatter_reduce_input_fn_factory("amax"),
+        get_gbps=gather_scatter_gbps,
+        dtypes=[torch.float16, torch.float32],
     )
     bench.run()
