@@ -100,7 +100,7 @@ def chunk_gated_delta_rule_fused_cumsum_kkt_solve_tril_kernel(
         b_A += tl.dot(b_kb.to(b_k.dtype), tl.trans(b_k))
     if USE_G:
         b_g_diff = b_g[:, None] - b_g[None, :]
-        b_A = b_A * exp(b_g_diff)
+        b_A = b_A * exp(b_g_diff.to(tl.float32))
     m_A_kkt = (o_t[:, None] > o_t[None, :]) & (m_t[:, None] & m_t)
     b_A = tl.where(m_A_kkt, b_A, 0)
     p_A = tl.make_block_ptr(

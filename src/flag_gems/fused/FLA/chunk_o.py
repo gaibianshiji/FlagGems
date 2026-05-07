@@ -113,8 +113,8 @@ def chunk_fwd_kernel_o(
         g += bos * H + i_h
         p_g = tl.make_block_ptr(g, (T,), (H,), (i_t * BT,), (BT,), (0,))
         b_g = tl.load(p_g, boundary_check=(0,))
-        b_o = b_o * exp(b_g)[:, None]
-        b_A = b_A * exp(b_g[:, None] - b_g[None, :])
+        b_o = b_o * exp(b_g.to(tl.float32))[:, None]
+        b_A = b_A * exp((b_g[:, None] - b_g[None, :]).to(tl.float32))
 
     o_t = i_t * BT + tl.arange(0, BT)
     m_t = o_t < T
