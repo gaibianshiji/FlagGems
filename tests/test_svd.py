@@ -492,71 +492,121 @@ def test_svd_all_params(m, n, some, compute_uv, dtype):
 @pytest.mark.svd
 @pytest.mark.parametrize("dtype", [torch.float32, torch.float64])
 def test_svd_nan_input(dtype):
-    """SVD on a matrix containing NaN should propagate NaN to outputs."""
+    """SVD on a matrix containing NaN: should match PyTorch behavior (propagate NaN or raise error)."""
     if dtype == torch.float64 and not _fp64_supported():
         pytest.skip("GPU has limited float64 support")
     m, n = 64, 64
     inp = torch.randn(m, n, dtype=dtype, device=flag_gems.device)
     inp[10, 10] = float("nan")
 
-    with flag_gems.use_gems():
-        U, S, V = torch.svd(inp, some=True)
+    # Check what native PyTorch does
+    try:
+        ref_U, ref_S, ref_V = torch.svd(inp, some=True)
+        native_raised = False
+    except torch._C._LinAlgError:
+        native_raised = True
 
-    assert torch.isnan(S).any(), "NaN not propagated to S"
-    assert U.shape == (m, min(m, n))
-    assert V.shape == (n, min(m, n))
+    # Our implementation should behave the same
+    try:
+        with flag_gems.use_gems():
+            U, S, V = torch.svd(inp, some=True)
+        gems_raised = False
+    except torch._C._LinAlgError:
+        gems_raised = True
+
+    assert native_raised == gems_raised, f"Error behavior mismatch: native raised={native_raised}, gems raised={gems_raised}"
+    if not native_raised:
+        assert torch.isnan(S).any(), "NaN not propagated to S"
+        assert U.shape == (m, min(m, n))
+        assert V.shape == (n, min(m, n))
 
 
 @pytest.mark.svd
 @pytest.mark.parametrize("dtype", [torch.float32, torch.float64])
 def test_svd_inf_input(dtype):
-    """SVD on a matrix containing Inf should propagate Inf to outputs."""
+    """SVD on a matrix containing Inf: should match PyTorch behavior."""
     if dtype == torch.float64 and not _fp64_supported():
         pytest.skip("GPU has limited float64 support")
     m, n = 64, 64
     inp = torch.randn(m, n, dtype=dtype, device=flag_gems.device)
     inp[0, 0] = float("inf")
 
-    with flag_gems.use_gems():
-        U, S, V = torch.svd(inp, some=True)
+    try:
+        ref_U, ref_S, ref_V = torch.svd(inp, some=True)
+        native_raised = False
+    except torch._C._LinAlgError:
+        native_raised = True
 
-    assert torch.isnan(S).any() or torch.isinf(S).any(), "Inf not handled in S"
-    assert U.shape == (m, min(m, n))
-    assert V.shape == (n, min(m, n))
+    try:
+        with flag_gems.use_gems():
+            U, S, V = torch.svd(inp, some=True)
+        gems_raised = False
+    except torch._C._LinAlgError:
+        gems_raised = True
+
+    assert native_raised == gems_raised, f"Error behavior mismatch: native raised={native_raised}, gems raised={gems_raised}"
+    if not native_raised:
+        assert torch.isnan(S).any() or torch.isinf(S).any(), "Inf not handled in S"
+        assert U.shape == (m, min(m, n))
+        assert V.shape == (n, min(m, n))
 
 
 @pytest.mark.svd
 @pytest.mark.parametrize("dtype", [torch.float32, torch.float64])
 def test_svd_neg_inf_input(dtype):
-    """SVD on a matrix containing -Inf should propagate appropriately."""
+    """SVD on a matrix containing -Inf: should match PyTorch behavior."""
     if dtype == torch.float64 and not _fp64_supported():
         pytest.skip("GPU has limited float64 support")
     m, n = 32, 32
     inp = torch.randn(m, n, dtype=dtype, device=flag_gems.device)
     inp[5, 5] = float("-inf")
 
-    with flag_gems.use_gems():
-        U, S, V = torch.svd(inp, some=True)
+    try:
+        ref_U, ref_S, ref_V = torch.svd(inp, some=True)
+        native_raised = False
+    except torch._C._LinAlgError:
+        native_raised = True
 
-    assert torch.isnan(S).any() or torch.isinf(S).any(), "-Inf not handled in S"
+    try:
+        with flag_gems.use_gems():
+            U, S, V = torch.svd(inp, some=True)
+        gems_raised = False
+    except torch._C._LinAlgError:
+        gems_raised = True
+
+    assert native_raised == gems_raised, f"Error behavior mismatch: native raised={native_raised}, gems raised={gems_raised}"
+    if not native_raised:
+        assert torch.isnan(S).any() or torch.isinf(S).any(), "-Inf not handled in S"
 
 
 @pytest.mark.svd
 @pytest.mark.parametrize("dtype", [torch.float32, torch.float64])
 def test_svd_all_nan(dtype):
-    """SVD on an all-NaN matrix should return NaN outputs without crashing."""
+    """SVD on an all-NaN matrix: should match PyTorch behavior."""
     if dtype == torch.float64 and not _fp64_supported():
         pytest.skip("GPU has limited float64 support")
     m, n = 32, 64
     inp = torch.full((m, n), float("nan"), dtype=dtype, device=flag_gems.device)
 
-    with flag_gems.use_gems():
-        U, S, V = torch.svd(inp, some=True)
+    try:
+        ref_U, ref_S, ref_V = torch.svd(inp, some=True)
+        native_raised = False
+    except torch._C._LinAlgError:
+        native_raised = True
 
-    assert torch.isnan(S).all(), "All-NaN input should produce all-NaN S"
-    k = min(m, n)
-    assert U.shape == (m, k)
-    assert V.shape == (n, k)
+    try:
+        with flag_gems.use_gems():
+            U, S, V = torch.svd(inp, some=True)
+        gems_raised = False
+    except torch._C._LinAlgError:
+        gems_raised = True
+
+    assert native_raised == gems_raised, f"Error behavior mismatch: native raised={native_raised}, gems raised={gems_raised}"
+    if not native_raised:
+        assert torch.isnan(S).all(), "All-NaN input should produce all-NaN S"
+        k = min(m, n)
+        assert U.shape == (m, k)
+        assert V.shape == (n, k)
 
 
 @pytest.mark.svd
@@ -618,7 +668,7 @@ def test_svd_very_small_values(dtype):
 @pytest.mark.svd
 @pytest.mark.parametrize("dtype", [torch.float32, torch.float64])
 def test_svd_mixed_nan_inf(dtype):
-    """SVD with mixed NaN and Inf entries should not crash."""
+    """SVD with mixed NaN and Inf entries: should match PyTorch behavior."""
     if dtype == torch.float64 and not _fp64_supported():
         pytest.skip("GPU has limited float64 support")
     m, n = 64, 64
@@ -627,26 +677,50 @@ def test_svd_mixed_nan_inf(dtype):
     inp[:, 0] = float("nan")
     inp[1, 1] = float("-inf")
 
-    with flag_gems.use_gems():
-        U, S, V = torch.svd(inp, some=True)
+    try:
+        ref_U, ref_S, ref_V = torch.svd(inp, some=True)
+        native_raised = False
+    except torch._C._LinAlgError:
+        native_raised = True
 
-    assert S.shape == (min(m, n),)
-    assert not torch.isfinite(S).all(), "Mixed NaN/Inf should produce non-finite S"
+    try:
+        with flag_gems.use_gems():
+            U, S, V = torch.svd(inp, some=True)
+        gems_raised = False
+    except torch._C._LinAlgError:
+        gems_raised = True
+
+    assert native_raised == gems_raised, f"Error behavior mismatch: native raised={native_raised}, gems raised={gems_raised}"
+    if not native_raised:
+        assert S.shape == (min(m, n),)
+        assert not torch.isfinite(S).all(), "Mixed NaN/Inf should produce non-finite S"
 
 
 @pytest.mark.svd
 @pytest.mark.parametrize("m,n", [(2, 2), (64, 64)])
 @pytest.mark.parametrize("dtype", [torch.float32, torch.float64])
 def test_svd_some_false_nan(m, n, dtype):
-    """SVD with some=False should handle NaN input consistently."""
+    """SVD with some=False and NaN: should match PyTorch behavior."""
     if dtype == torch.float64 and not _fp64_supported():
         pytest.skip("GPU has limited float64 support")
     inp = torch.randn(m, n, dtype=dtype, device=flag_gems.device)
     inp[0, 0] = float("nan")
 
-    with flag_gems.use_gems():
-        U, S, V = torch.svd(inp, some=False)
+    try:
+        ref_U, ref_S, ref_V = torch.svd(inp, some=False)
+        native_raised = False
+    except torch._C._LinAlgError:
+        native_raised = True
 
-    assert torch.isnan(S).any(), "NaN should propagate to S with some=False"
-    assert U.shape == (m, m)
-    assert V.shape == (n, n)
+    try:
+        with flag_gems.use_gems():
+            U, S, V = torch.svd(inp, some=False)
+        gems_raised = False
+    except torch._C._LinAlgError:
+        gems_raised = True
+
+    assert native_raised == gems_raised, f"Error behavior mismatch: native raised={native_raised}, gems raised={gems_raised}"
+    if not native_raised:
+        assert torch.isnan(S).any(), "NaN should propagate to S with some=False"
+        assert U.shape == (m, m)
+        assert V.shape == (n, n)

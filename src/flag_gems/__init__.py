@@ -153,7 +153,6 @@ _FULL_CONFIG = (
     ("conv2d.padding", conv2d),
     ("conv3d", conv3d),
     ("conv3d.padding", conv3d),
-    ("conv_transpose2d", conv_transpose2d),
     (
         "copy_",
         copy_,
@@ -167,7 +166,6 @@ _FULL_CONFIG = (
     ("copysign", copysign),
     ("copysign.out", copysign_out),
     ("count_nonzero", count_nonzero),
-    ("ctc_loss", ctc_loss),
     ("cummax", cummax),
     ("cummin", cummin),
     ("cumsum", cumsum),
