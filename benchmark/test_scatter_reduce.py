@@ -144,7 +144,7 @@ def test_scatter_reduce_two_sum():
         torch_op=torch.scatter_reduce,
         input_fn=scatter_reduce_input_fn_factory("sum"),
         get_gbps=gather_scatter_gbps,
-        dtypes=[torch.float16, torch.float32],
+        dtypes=[torch.float16, torch.bfloat16, torch.float32],
     )
     bench.run()
 
@@ -156,6 +156,6 @@ def test_scatter_reduce_two_amax():
         torch_op=torch.scatter_reduce,
         input_fn=scatter_reduce_input_fn_factory("amax"),
         get_gbps=gather_scatter_gbps,
-        dtypes=[torch.float16, torch.float32],
+        dtypes=[torch.float16, torch.bfloat16, torch.float32],
     )
     bench.run()
